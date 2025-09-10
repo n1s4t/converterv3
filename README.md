@@ -1,47 +1,34 @@
-# Pro Studio v2.1 — Markdown · HTML · DOCX Studio
+# Pro Studio v2.2 — Mobile & PC Optimized
 
 **Author:** n1s4t  
-**Version:** 2.1
+**Version:** 2.2
 
-## What’s new in v2.1
-- All features from v2 plus:
-  - **DOCX import** (via Mammoth.js) → converts to HTML & Markdown
-  - **DOCX export** (via docx library) — exports editor content to .docx
-  - New button formation (FABs, chips, glass pills) with ripple effect
-  - Export menu with multiple formats (.md, .html, .txt, .docx, .pdf)
-  - Improved UX: multi-file tabs, resizable panels, themes, search/replace
-
-## Files
-- `index.html` — main app (single-file, client-side)
-- `README.md` — this file
+## Highlights
+Pro Studio v2.2 is optimized for both mobile and desktop:
+- Responsive layout: 3-panel desktop, single-panel tabbed mobile.
+- Touch-friendly targets (min 44px), collapsible FAB menu for mobile.
+- Lazy-loading of heavy libraries (Mammoth, docx) to improve mobile performance.
+- DOCX import/export, Markdown ↔ HTML sync, multi-tabs, export as .md/.html/.txt/.docx/.pdf.
+- Resizable panels on desktop; tabbed navigation on mobile.
 
 ## How to use
-1. Open `index.html` in a modern browser (Chrome, Edge, Firefox).
-2. Use **Import** to load `.md`, `.html`, `.txt`, or `.docx`.
-   - DOCX is converted to HTML using Mammoth and saved into the current tab.
-3. Use **New** to create tabs/files and switch between them.
-4. Toggle **Auto-sync** to convert Markdown → HTML automatically.
-5. Use the floating **Export As** menu to export to `.md`, `.html`, `.txt`, `.docx`, or `.pdf`.
-6. `Ctrl/Cmd+S` saves the session into `localStorage`. Files persist in your browser.
-7. For `.docx` export, the docx library constructs a simple Word doc from paragraphs (plain text). Complex DOCX styling is limited in this client-side implementation.
+1. Open `index.html` in a modern browser (desktop or mobile).
+2. On desktop you'll see 3 panels (HTML | Markdown | Preview) and resizers.
+3. On mobile use the bottom navigation to switch between HTML / Markdown / Preview.
+4. Import files: click Import -> select .md/.html/.txt/.docx. DOCX uses Mammoth (loaded only when needed).
+5. Export via FAB menu -> Export As -> choose format (.md/.html/.txt/.docx/.pdf).
+6. Use Ctrl/Cmd+S to save session to localStorage.
 
-## Technical notes & limitations
-- All conversion libraries are loaded from public CDNs; offline usage requires bundling them.
-- DOCX export creates simple paragraphs — it does not preserve complex styling, images, or advanced formatting.
-- PDF export uses the browser print dialog; quality depends on the browser’s print engine.
-- This is a client-only app (no server). For cloud sync / GitHub integration you’ll need a backend and OAuth.
+## Files
+- `index.html` — main responsive app
+- `README.md` — this file
 
-## License / Ownership
-You retain full ownership. Use/modify freely. Suggested copyright:
+## Notes
+- Libraries are loaded from CDNs. For offline or production use, bundle them.
+- DOCX export creates basic Word documents; complex styling may be lost.
+- PDF export uses browser print; quality depends on browser.
 
-```
-© 2025 n1s4t — Pro Studio v2.1
-```
-
-## Next improvements (suggested)
-- Add drag & drop import directly onto editors.
-- Better DOCX -> HTML fidelity (preserve images).
+## Next steps (optional)
+- Add drag-and-drop import to editor surface.
 - Integrate Prettier / HTML tidy for formatting.
-- Add cloud save (GitHub Gist / Google Drive).
-
-Enjoy — tell me if you want a packaged electron app or GitHub-ready repo with CI next!
+- Add cloud sync (GitHub Gist / Google Drive) with OAuth.
