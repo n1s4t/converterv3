@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pro Studio v2.1 — Markdown · HTML · DOCX Studio by n1s4t</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Highlight.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- Lucide -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Converters -->
+<script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+<script src="https://unpkg.com/turndown-plugin-gfm/dist/turndown-plugin-gfm.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+<!-- Mammoth for DOCX -> HTML/Markdown -->
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
+<!-- docx (browser) for export to .docx -->
+<script src="https://unpkg.com/docx@7.7.0/build/index.browser.js"></script>
+
+<!-- FileSaver for saving blobs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+<style>
+  :root{ --glass: rgba(255,255,255,0.04); }
+  html,body{height:100%;font-family:Inter,ui-sans-serif,system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  body{background:linear-gradient(180deg,#071029 0%, #050511 100%); color:#e6eef8; padding:20px;}
+  .glass{backdrop-filter: blur(6px) saturate(1.1); background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04);}
+  .panel{border-radius:18px; overflow:hidden; box-shadow: 0 12px 30px rgba(2,6,23,0.6);}
+  .code-editor{font-family: ui-monospace,SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; min-height:420px; white-space:pre-wrap; outline:none; padding:18px; font-size:14px;}
+  .divider{width:10px; cursor: col-resize; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:8px;}
+  .fab{width:56px; height:56px; border-radius:9999px; display:grid; place-items:center; box-shadow: 0 10px 30px rgba(2,6,23,0.6); position:relative; overflow:hidden;}
+  .fab .ripple{position:absolute; inset:0; transform:scale(0); background: radial-gradient(circle, rgba(255,255,255,0.12), transparent 40%); transition: transform .45s cubic-bezier(.2,.8,.2,1);}
+  .fab:hover .ripple{transform:scale(2);}
+  .tab{padding:6px 12px; border-radius:10px; cursor:pointer; font-size:13px;}
+  .tab.active{background:linear-gradient(90deg,#7c3aed,#ec4899); color:white;}
+  .pill{padding:8px 12px; border-radius:999px; display:inline-flex; gap:8px; align-items:center;}
+  .chip{padding:6px 10px; border-radius:999px; background:linear-gradient(90deg,#11182766,#0f172a44); border:1px solid rgba(255,255,255,0.03); font-size:13px;}
+  .glass-btn{padding:8px 12px; border-radius:999px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.04);}
+  .pro-badge{background:linear-gradient(90deg,#f97316,#ef4444); padding:4px 8px; border-radius:999px; font-size:12px;}
+  @media (max-width:900px){ .cols-3{grid-template-columns:1fr;} .divider{display:none;} }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="flex items-center justify-between mb-6">
+  <div class="flex items-center gap-4">
+    <div class="w-12 h-12 rounded-xl glass flex items-center justify-center">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M3 12h18" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M12 3v18" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold">Pro Studio v2.1 <span class="pro-badge">Ultimate</span></h1>
+      <p class="text-sm text-gray-300">Advanced Markdown ↔ HTML ↔ DOCX studio — multi-file, resizable, exportable</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <select id="themeSelect" class="rounded-lg p-2 bg-transparent border border-white/10 text-sm glass-btn">
+      <option value="dark" selected>Dark</option>
+      <option value="light">Light</option>
+      <option value="dracula">Dracula</option>
+      <option value="cyber">Cyberpunk</option>
+    </select>
+
+    <input id="fileInput" type="file" accept=".md,.markdown,.html,.txt,.docx" class="hidden" />
+    <button id="importBtn" class="pill glass-btn"><i data-lucide="upload-cloud"></i> Import</button>
+
+    <div class="chip"><label class="inline-flex items-center gap-2 text-sm"><input id="autoSync" type="checkbox" checked> Auto-sync</label></div>
+    <div class="glass-btn px-3 py-2 rounded-lg flex items-center gap-2">
+      <span class="text-xs text-gray-300">Files:</span>
+      <div id="tabs" class="flex gap-2"></div>
+      <button id="newTabBtn" class="ml-2 glass-btn">+ New</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main: resizable 3 cols -->
+<div id="mainGrid" class="grid cols-3 grid-cols-[1fr_10px_1fr_10px_1fr] gap-4 mb-6">
+
+  <!-- HTML -->
+  <section class="panel glass p-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-3"><strong>HTML</strong><span id="htmlStats" class="text-xs text-gray-300">0 lines • 0 words</span></div>
+      <div class="flex items-center gap-2">
+        <button id="htmlSearchBtn" class="glass-btn">Search</button>
+        <button id="formatHtml" class="glass-btn">Format</button>
+      </div>
+    </div>
+    <pre id="htmlPane" class="code-editor language-xml" contenteditable="true" spellcheck="false"></pre>
+  </section>
+
+  <div id="divider1" class="divider" title="Drag to resize"></div>
+
+  <!-- Markdown -->
+  <section class="panel glass p-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-3"><strong>Markdown</strong><span id="mdStats" class="text-xs text-gray-300">0 lines • 0 words</span></div>
+      <div class="flex items-center gap-2">
+        <button id="mdSearchBtn" class="glass-btn">Search</button>
+        <div class="flex items-center gap-2">
+          <button id="boldBtn" class="glass-btn">B</button>
+          <button id="italicBtn" class="glass-btn">I</button>
+        </div>
+      </div>
+    </div>
+    <pre id="mdPane" class="code-editor language-markdown" contenteditable="true" spellcheck="false"></pre>
+  </section>
+
+  <div id="divider2" class="divider" title="Drag to resize"></div>
+
+  <!-- Preview -->
+  <section class="panel glass p-4">
+    <div class="flex items-center justify-between mb-3"><strong>Preview</strong><div class="text-xs text-gray-300" id="previewInfo">Live</div></div>
+    <div id="previewPane" class="prose max-w-none p-2 min-h-[420px] bg-[#020617] rounded"></div>
+  </section>
+
+</div>
+
+<!-- Floating FAB group -->
+<div class="fixed right-8 bottom-8 flex flex-col gap-4">
+  <button id="downloadFab" class="fab bg-gradient-to-br from-indigo-500 to-pink-500 text-white" title="Download">
+    <span class="ripple"></span><i data-lucide="download"></i>
+  </button>
+  <button id="exportAsBtn" class="fab bg-gradient-to-br from-sky-500 to-emerald-400 text-white" title="Export As">
+    <span class="ripple"></span><i data-lucide="layers"></i>
+  </button>
+  <button id="copyFab" class="fab bg-green-500 text-white" title="Copy"><span class="ripple"></span><i data-lucide="copy"></i></button>
+  <button id="exportPdf" class="fab bg-yellow-500 text-white" title="Export PDF"><span class="ripple"></span><i data-lucide="file-text"></i></button>
+  <button id="clearFab" class="fab bg-red-500 text-white" title="Clear"><span class="ripple"></span><i data-lucide="trash-2"></i></button>
+</div>
+
+<!-- Export menu -->
+<div id="exportMenu" class="hidden fixed right-32 bottom-28 bg-[#071022] p-3 rounded-lg glass border border-white/5 shadow-lg">
+  <div class="text-sm text-gray-300 mb-2">Export as</div>
+  <div class="flex flex-col gap-2">
+    <button data-ext="md" class="glass-btn exportChoice">Markdown (.md)</button>
+    <button data-ext="html" class="glass-btn exportChoice">HTML (.html)</button>
+    <button data-ext="txt" class="glass-btn exportChoice">Text (.txt)</button>
+    <button data-ext="docx" class="glass-btn exportChoice">Word (.docx)</button>
+    <button data-ext="pdf" class="glass-btn exportChoice">PDF (.pdf)</button>
+  </div>
+</div>
+
+<!-- Search modal -->
+<div id="searchModal" class="fixed inset-0 hidden items-center justify-center bg-black/60">
+  <div class="bg-white text-black rounded-lg p-4 w-[min(720px,95%)]">
+    <div class="flex items-center gap-2">
+      <input id="searchInput" placeholder="Find..." class="flex-1 p-2 border rounded" />
+      <input id="replaceInput" placeholder="Replace..." class="p-2 border rounded" />
+      <button id="doReplace" class="px-3 py-2 bg-indigo-600 text-white rounded">Replace</button>
+      <button id="closeSearch" class="px-3 py-2 border rounded">Close</button>
+    </div>
+    <div class="mt-2 text-sm text-gray-600">Use <strong>Enter</strong> to find next, <strong>Shift+Enter</strong> to find previous.</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-20 bg-black/80 text-white px-4 py-2 rounded opacity-0 transition-opacity"></div>
+
+<script>
+lucide.createIcons();
+
+// DOM refs
+const htmlPane = document.getElementById('htmlPane');
+const mdPane = document.getElementById('mdPane');
+const previewPane = document.getElementById('previewPane');
+const autoSync = document.getElementById('autoSync');
+const themeSelect = document.getElementById('themeSelect');
+const htmlStats = document.getElementById('htmlStats');
+const mdStats = document.getElementById('mdStats');
+const toast = document.getElementById('toast');
+const fileInput = document.getElementById('fileInput');
+const importBtn = document.getElementById('importBtn');
+
+// converters
+const turndownService = new TurndownService();
+turndownService.use(turndownPluginGfm.gfm);
+const showdownConverter = new showdown.Converter({tables:true, ghCodeBlocks:true});
+
+// docx (window.docx) available via CDN
+const { Document, Packer, Paragraph, TextRun } = window.docx || {};
+
+// tabs
+const tabsEl = document.getElementById('tabs');
+let files = JSON.parse(localStorage.getItem('ps_files_v21') || '[]');
+if(!files.length) files = [{id:Date.now(), name:'untitled.md', html:'', md:''}];
+let activeFile = files[0].id;
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  files.forEach(f=>{
+    const btn = document.createElement('div');
+    btn.className = 'tab ' + (f.id===activeFile ? 'active' : '');
+    btn.textContent = f.name;
+    btn.onclick = ()=>{ activeFile = f.id; loadActive(); renderTabs(); };
+    tabsEl.appendChild(btn);
+  });
+}
+renderTabs();
+
+function saveFiles(){ localStorage.setItem('ps_files_v21', JSON.stringify(files)); }
+
+function loadActive(){
+  const f = files.find(x=>x.id===activeFile);
+  if(!f) return;
+  htmlPane.innerText = f.html || '';
+  mdPane.innerText = f.md || '';
+  syncAll(false);
+}
+
+document.getElementById('newTabBtn').onclick = ()=>{
+  const f = {id:Date.now(), name:'untitled.md', html:'', md:''};
+  files.push(f); activeFile = f.id; saveFiles(); renderTabs(); loadActive();
+};
+
+// import handler
+importBtn.onclick = ()=> fileInput.click();
+fileInput.addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const text = await file.text();
+  const ext = (file.name.split('.').pop()||'').toLowerCase();
+  const f = files.find(x=>x.id===activeFile);
+  if(ext==='html' || ext==='htm'){ f.html = text; f.md = turndownService.turndown(text); }
+  else if(ext==='md' || ext==='markdown' || ext==='txt'){ f.md = text; f.html = showdownConverter.makeHtml(text); }
+  else if(ext==='docx'){ // use mammoth
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({arrayBuffer});
+    f.html = result.value;
+    f.md = turndownService.turndown(f.html);
+  } else { showToast('Unsupported format'); return; }
+  saveFiles(); loadActive(); showToast('Imported '+file.name);
+});
+
+// update stats
+function statsFor(text){ const lines = text.split('\n').length; const words = text.split(/\s+/).filter(Boolean).length; return {lines, words}; }
+function updateStats(){ htmlStats.textContent = `${statsFor(htmlPane.innerText).lines} lines • ${statsFor(htmlPane.innerText).words} words`; mdStats.textContent = `${statsFor(mdPane.innerText).lines} lines • ${statsFor(mdPane.innerText).words} words`; }
+
+// sync logic
+let lastMd=''; let lastHtml='';
+function syncAll(save=true){
+  // if autoSync and showdown available: prefer md->html
+  if(showdownConverter && autoSync.checked){
+    const md = mdPane.innerText;
+    if(md!==lastMd){
+      const html = showdownConverter.makeHtml(md);
+      htmlPane.innerText = html;
+      previewPane.innerHTML = html;
+      lastMd = md; lastHtml = html;
+    } else {
+      const html = htmlPane.innerText;
+      if(html!==lastHtml){
+        const md2 = turndownService.turndown(html);
+        mdPane.innerText = md2;
+        previewPane.innerHTML = html;
+        lastHtml = html; lastMd = md2;
+      } else {
+        previewPane.innerHTML = htmlPane.innerText;
+      }
+    }
+  } else {
+    // manual mode
+    if(htmlPane.innerText.trim()) previewPane.innerHTML = htmlPane.innerText;
+    else previewPane.innerHTML = showdownConverter.makeHtml(mdPane.innerText);
+  }
+  updateStats();
+  if(save){
+    const f = files.find(x=>x.id===activeFile);
+    if(f){ f.html = htmlPane.innerText; f.md = mdPane.innerText; saveFiles(); }
+  }
+  hljs.highlightAll();
+}
+
+[htmlPane, mdPane].forEach(p => p.addEventListener('input', ()=> syncAll()));
+
+// divider resizing
+function makeDivider(divider){
+  let dragging=false;
+  divider.addEventListener('pointerdown', (e)=>{ dragging=true; divider.setPointerCapture(e.pointerId); });
+  window.addEventListener('pointerup', ()=>{ dragging=false; });
+  window.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    const grid = document.getElementById('mainGrid');
+    const rect = grid.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const total = rect.width;
+    const col0 = Math.max(240, x - 8);
+    const col2 = Math.max(240, total - col0 - 20 - 240);
+    grid.style.gridTemplateColumns = `${col0}px 10px ${col2}px 10px 1fr`;
+  });
+}
+makeDivider(document.getElementById('divider1'));
+makeDivider(document.getElementById('divider2'));
+
+// FAB actions
+function showToast(msg){ toast.textContent = msg; toast.style.opacity=1; setTimeout(()=>{ toast.style.opacity=0; }, 2200); }
+
+// download current file
+document.getElementById('downloadFab').onclick = ()=>{
+  const f = files.find(x=>x.id===activeFile);
+  const name = f.name || 'export.md';
+  const ext = name.split('.').pop() || 'md';
+  let content = '';
+  if(ext === 'html') content = htmlPane.innerText || showdownConverter.makeHtml(mdPane.innerText);
+  else content = mdPane.innerText || turndownService.turndown(htmlPane.innerText);
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  saveAs(blob, name);
+  showToast('Downloaded '+name);
+};
+
+// export menu
+const exportMenu = document.getElementById('exportMenu');
+document.getElementById('exportAsBtn').onclick = ()=> exportMenu.classList.toggle('hidden');
+
+// Handle export choices
+document.querySelectorAll('.exportChoice').forEach(btn=>{
+  btn.onclick = async (e)=>{
+    const ext = e.currentTarget.dataset.ext;
+    const f = files.find(x=>x.id===activeFile);
+    const base = f.name.replace(/\.[^/.]+$/, "") || 'export';
+    if(ext==='md'){
+      const blob = new Blob([mdPane.innerText || turndownService.turndown(htmlPane.innerText)], {type:'text/markdown'});
+      saveAs(blob, base+'.md'); showToast('Exported .md');
+    } else if(ext==='html'){
+      const blob = new Blob([htmlPane.innerText || showdownConverter.makeHtml(mdPane.innerText)], {type:'text/html'});
+      saveAs(blob, base+'.html'); showToast('Exported .html');
+    } else if(ext==='txt'){
+      const blob = new Blob([mdPane.innerText || htmlPane.innerText], {type:'text/plain'});
+      saveAs(blob, base+'.txt'); showToast('Exported .txt');
+    } else if(ext==='docx'){
+      // use docx lib to create .docx from markdown (plain text paragraphs)
+      try{
+        const doc = new Document();
+        const mdText = mdPane.innerText || turndownService.turndown(htmlPane.innerText);
+        const paragraphs = mdText.split(/\n+/).map(ln => new Paragraph({ children: [ new TextRun(ln) ] }));
+        doc.addSection({ children: paragraphs });
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, base+'.docx');
+        showToast('Exported .docx');
+      } catch(err){ console.error(err); showToast('DOCX export failed'); }
+    } else if(ext==='pdf'){
+      // open print window with preview content
+      const w = window.open('','_blank','width=900,height=700');
+      const html = previewPane.innerHTML;
+      w.document.write(`<html><head><title>Export PDF</title><style>body{font-family:Inter,Arial;padding:20px;color:#111}</style></head><body>${html}</body></html>`);
+      w.document.close(); w.focus();
+      w.print();
+      showToast('Opened print dialog for PDF');
+    }
+    exportMenu.classList.add('hidden');
+  };
+});
+
+// copy
+document.getElementById('copyFab').onclick = async ()=>{
+  try{ await navigator.clipboard.writeText(mdPane.innerText || htmlPane.innerText); showToast('Copied to clipboard'); } catch(e){ showToast('Copy failed'); }
+};
+
+// clear
+document.getElementById('clearFab').onclick = ()=>{ if(!confirm('Clear current file content?')) return; htmlPane.innerText=''; mdPane.innerText=''; previewPane.innerHTML=''; syncAll(); };
+
+// export PDF via button
+document.getElementById('exportPdf').onclick = ()=> document.querySelector('.exportChoice[data-ext="pdf"]').click();
+
+// keyboard shortcuts
+window.addEventListener('keydown', (e)=>{
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); syncAll(); showToast('Saved'); }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='b'){ e.preventDefault(); document.execCommand('insertText', false, '**bold**'); }
+});
+
+// theme select
+function applyTheme(t){
+  if(t==='light'){ document.body.style.background='linear-gradient(180deg,#f3f4f6,#eef2ff)'; previewPane.style.background='#fff'; previewPane.style.color='#111'; }
+  else if(t==='dracula'){ document.body.style.background='linear-gradient(180deg,#0b1020,#0e1b2b)'; previewPane.style.background='#0b1220'; previewPane.style.color='#e6eef8'; }
+  else if(t==='cyber'){ document.body.style.background='linear-gradient(180deg,#070617,#140a2e)'; previewPane.style.background='#050014'; previewPane.style.color='#e6eef8'; }
+  else { document.body.style.background='linear-gradient(180deg,#071029,#050511)'; previewPane.style.background='#020617'; previewPane.style.color='#e6eef8'; }
+}
+themeSelect.addEventListener('change', ()=> applyTheme(themeSelect.value));
+applyTheme('dark');
+
+// search modal
+const searchModal = document.getElementById('searchModal');
+document.getElementById('htmlSearchBtn').onclick = ()=> openSearch(htmlPane);
+document.getElementById('mdSearchBtn').onclick = ()=> openSearch(mdPane);
+let activeSearchTarget = null;
+function openSearch(target){
+  activeSearchTarget = target;
+  searchModal.classList.remove('hidden'); searchModal.classList.add('flex');
+  document.getElementById('searchInput').focus();
+}
+document.getElementById('closeSearch').onclick = ()=> { searchModal.classList.add('hidden'); activeSearchTarget=null; };
+document.getElementById('doReplace').onclick = ()=> {
+  const find = document.getElementById('searchInput').value;
+  const replace = document.getElementById('replaceInput').value;
+  if(!find) return;
+  const t = activeSearchTarget;
+  t.innerText = t.innerText.split(find).join(replace);
+  syncAll();
+  showToast('Replaced occurrences');
+};
+
+// formatting buttons
+document.getElementById('boldBtn').onclick = ()=> document.execCommand('insertText', false, '**bold**');
+document.getElementById('italicBtn').onclick = ()=> document.execCommand('insertText', false, '*italic*');
+
+// save on unload
+window.addEventListener('beforeunload', ()=> syncAll());
+
+// initial load
+loadActive();
+syncAll(false);
+</script>
+
+</body>
+</html>
