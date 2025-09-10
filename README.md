@@ -1,4 +1,4 @@
-# ( Pro Studio v1.3 — Mobile & PC Optimized)[https://n1s4t.github.io/converterv3/]
+# [Pro Studio v1.3 — Mobile & PC Optimized](https://n1s4t.github.io/converterv3/)
 
 **Author:** n1s4t  
 **Version:** 1.3
