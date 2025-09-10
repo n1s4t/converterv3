@@ -2,6 +2,9 @@
 
 **Author:** n1s4t  
 **Version:** 1.3
+## 🔗 Socials
+
+[![Visit My Guns.lol Profile](https://img.shields.io/badge/Guns.lol-n1s4t-blue?style=for-the-badge)](https://guns.lol/n1s4t)
 
 ## Highlights
 Pro Studio v1.3 is optimized for both mobile and desktop:
