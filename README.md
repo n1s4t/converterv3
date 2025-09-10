@@ -1,10 +1,10 @@
-# Pro Studio v2.2 — Mobile & PC Optimized
+# ( Pro Studio v1.3 — Mobile & PC Optimized)[https://n1s4t.github.io/converterv3/]
 
 **Author:** n1s4t  
-**Version:** 2.2
+**Version:** 1.3
 
 ## Highlights
-Pro Studio v2.2 is optimized for both mobile and desktop:
+Pro Studio v1.3 is optimized for both mobile and desktop:
 - Responsive layout: 3-panel desktop, single-panel tabbed mobile.
 - Touch-friendly targets (min 44px), collapsible FAB menu for mobile.
 - Lazy-loading of heavy libraries (Mammoth, docx) to improve mobile performance.
